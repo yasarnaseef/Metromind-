@@ -34,7 +34,7 @@ class LoginScreen extends StatelessWidget {
               padding: const EdgeInsets.all(8.0),
               child:  InkWell(
                 onTap: (){
-                  back(context);
+                  // back(context);
                 },
                 child: Container(
                   height: 36,
