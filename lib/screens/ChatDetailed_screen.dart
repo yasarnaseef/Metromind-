@@ -242,36 +242,7 @@ class ChatDetailedScreen extends StatelessWidget {
                           ),
 
                           // Message Input Field
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 15,
-                            ),
-                            child: TextFormField(
-                              minLines: 1,
-                              maxLines: 4,
-                              keyboardType: TextInputType.multiline,
-                              textInputAction: TextInputAction.newline,
-                              decoration: InputDecoration(
-                                filled: true,
-                                hintText: 'Message',
-                                fillColor: Colors.grey.shade200,
-                                suffixIcon: const Icon(Icons.send, color: darkRed50),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.grey.shade200),
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.grey.shade200),
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.grey.shade100),
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                              ),
-                            ),
-                          ),
+
                         ],
                       );
                     }
@@ -281,7 +252,36 @@ class ChatDetailedScreen extends StatelessWidget {
             ),
           ),
 
-
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 15,
+            ),
+            child: TextFormField(
+              minLines: 1,
+              maxLines: 4,
+              keyboardType: TextInputType.multiline,
+              textInputAction: TextInputAction.newline,
+              decoration: InputDecoration(
+                filled: true,
+                hintText: 'Message',
+                fillColor: Colors.grey.shade200,
+                suffixIcon: const Icon(Icons.send, color: darkRed50),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey.shade200),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey.shade200),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey.shade100),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+            ),
+          ),
 
 
         ],
