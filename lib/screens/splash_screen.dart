@@ -57,7 +57,7 @@ class _SplashScreenState extends State<SplashScreen> {
               Text(
                 'Connect. Meet. Love.',
                 style: GoogleFonts.poppins(
-                  fontSize: 28,
+                  fontSize: 27,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
@@ -67,7 +67,7 @@ class _SplashScreenState extends State<SplashScreen> {
               Text(
                 'With Fliq Dating',
                 style: GoogleFonts.poppins(
-                  fontSize: 28,
+                  fontSize: 27,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
