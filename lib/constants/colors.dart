@@ -11,3 +11,4 @@ const darkRed6E = Color(0xffE6446E);
 const darkRed50 = Color(0xffFF5050);
 const brown = Color(0xff583E45);
 const whiteFFFF = Colors.white;
+const blue2C3F = Color(0xff2C3F9D);

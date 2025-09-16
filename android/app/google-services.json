@@ -1,0 +1,87 @@
+{
+  "project_info": {
+    "project_number": "107828781767",
+    "project_id": "aventustest-c5c32",
+    "storage_bucket": "aventustest-c5c32.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:107828781767:android:a8c083c664e13799f054e2",
+        "android_client_info": {
+          "package_name": "com.example.aventusmachinetest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "107828781767-16kiei5tgo3rrimiucsgvrmr0p8ffsei.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.aventusmachinetest",
+            "certificate_hash": "ff870674d9e63dcdff34056c900cc63ff3abe5d1"
+          }
+        },
+        {
+          "client_id": "107828781767-34g5fod7i9r96rosqa22nmroq5cq76an.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.aventusmachinetest",
+            "certificate_hash": "d5548557856bf7f48c06a00bf4777ee2d1e883fe"
+          }
+        },
+        {
+          "client_id": "107828781767-alnvemvuvi7busaitflvdv1l6fak99r9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.aventusmachinetest",
+            "certificate_hash": "17b7d75a8158e4563532428e9f8b719f52d72bde"
+          }
+        },
+        {
+          "client_id": "107828781767-k3qsif798sl71hcomauljm1ophmm5n9g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.aventusmachinetest",
+            "certificate_hash": "378a920d742b71b0109855261edc8a74a1020629"
+          }
+        },
+        {
+          "client_id": "107828781767-m1melrspfi6j8kfb7s4h2o9crdkrs4aj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.aventusmachinetest",
+            "certificate_hash": "ab84859897b94160afbb0b9241712d257477a8e7"
+          }
+        },
+        {
+          "client_id": "107828781767-vb0gkamk0hgv1f1avi1jbe86foekm05k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.aventusmachinetest",
+            "certificate_hash": "768f741c5107b2a5f2209a582b0bc449da1d0ed8"
+          }
+        },
+        {
+          "client_id": "107828781767-ekmpoql50a1hab74uf3v1d4eeupmqtlc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-Gur3KJGTLh5JzM9sOSQU7OD61bnKgmg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "107828781767-ekmpoql50a1hab74uf3v1d4eeupmqtlc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
