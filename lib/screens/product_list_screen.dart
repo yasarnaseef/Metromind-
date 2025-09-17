@@ -43,14 +43,28 @@ class _ProductListScreenState extends State<ProductListScreen> {
           fontWeight: FontWeight.w600,
         ),),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ProductFormScreen()),
+          Consumer<ProductProvider>(
+              builder: (context,productPro,child) {
+              return IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: () {
+                  productPro.clearProductDetails();
+                  Product product = Product(
+                    name: '',
+                    description: '',
+                    price: 0.0,
+                    costPrice: 0.0,
+                    quantity: 0,
+                    categories: [], id: '', imageUrl: '',
+                  );
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) =>  ProductFormScreen(product:product ,)),
+                  );
+                },
               );
-            },
+            }
           ),
         ],
       ),

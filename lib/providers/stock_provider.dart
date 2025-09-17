@@ -1,15 +1,122 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../models/order_model.dart';
 import '../models/product_model.dart';
 import '../models/stock_model.dart';
 import '../services/stock_service.dart';
+import 'product_provider.dart';
 
 class StockProvider with ChangeNotifier {
   final StockService _stockService = StockService();
   List<StockPurchase> _stockPurchases = [];
 
+  ///
+  final formKey = GlobalKey<FormState>();
+  final supplierNameController = TextEditingController();
+  final notesController = TextEditingController();
+  DateTime purchaseDate = DateTime.now();
+  List<StockPurchaseItem> items = [];
+  double totalCost = 0.0;
+
+  void addItem(String productId, int quantity, double cost) {
+      items.add(StockPurchaseItem(productId: productId, quantity: quantity, cost: cost));
+      totalCost += quantity * cost;
+  notifyListeners();
+  }
+  Future<void> selectProductQuantityCost(BuildContext context) async {
+    final productProvider = Provider.of<ProductProvider>(context, listen: false);
+    final selectedProduct = await showDialog<Product>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Select Product'),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: 300,
+          child: StreamBuilder<List<Product>>(
+            stream: productProvider.getProductsStream(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) return const CircularProgressIndicator();
+              return ListView.builder(
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, index) {
+                  final product = snapshot.data![index];
+                  return ListTile(
+                    title: Text(product.name),
+                    subtitle: Text('Current Qty: ${product.quantity}'),
+                    onTap: () => Navigator.pop(context, product),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ),
+    );
+    if (selectedProduct == null) return;
+
+    final quantityText = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Quantity for ${selectedProduct.name}'),
+        content: TextField(
+          keyboardType: TextInputType.number,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: 'Quantity'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, '1'),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+    final quantity = int.tryParse(quantityText ?? '1');
+    if (quantity == null || quantity <= 0) return;
+
+    final costText = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cost per Unit'),
+        content: TextField(
+          keyboardType: TextInputType.number,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: 'Cost (₹)'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, '0'),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+    final cost = double.tryParse(costText ?? '0');
+    if (cost != null && cost > 0) {
+      addItem(selectedProduct.id, quantity, cost);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${selectedProduct.name} added')));
+    }
+  }
+
+  updateDate(DateTime date){
+    purchaseDate=date;
+    notifyListeners();
+  }
+  removeProduct(int index,StockPurchaseItem item){
+    totalCost -= item.quantity * item.cost;
+    items.removeAt(index);
+    notifyListeners();
+  }
   List<StockPurchase> get stockPurchases => _stockPurchases;
 
   Stream<List<StockPurchase>> getStockPurchasesStream() {

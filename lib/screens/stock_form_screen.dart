@@ -8,216 +8,284 @@ import '../providers/product_provider.dart';
 import '../providers/stock_provider.dart';
 
 
-class StockFormScreen extends StatefulWidget {
-  const StockFormScreen({Key? key}) : super(key: key);
-
-  @override
-  State<StockFormScreen> createState() => _StockFormScreenState();
-}
-
-class _StockFormScreenState extends State<StockFormScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _supplierNameController = TextEditingController();
-  final _notesController = TextEditingController();
-  DateTime _purchaseDate = DateTime.now();
-  List<StockPurchaseItem> _items = [];
-  double _totalCost = 0.0;
-
-  @override
-  void dispose() {
-    _supplierNameController.dispose();
-    _notesController.dispose();
-    super.dispose();
-  }
-
-  void _addItem(String productId, int quantity, double cost) {
-    setState(() {
-      _items.add(StockPurchaseItem(productId: productId, quantity: quantity, cost: cost));
-      _totalCost += quantity * cost;
-    });
-  }
-
-  Future<void> _selectProductQuantityCost() async {
-    final productProvider = Provider.of<ProductProvider>(context, listen: false);
-    final selectedProduct = await showDialog<Product>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select Product'),
-        content: SizedBox(
-          width: double.maxFinite,
-          height: 300,
-          child: StreamBuilder<List<Product>>(
-            stream: productProvider.getProductsStream(),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) return const CircularProgressIndicator();
-              return ListView.builder(
-                itemCount: snapshot.data!.length,
-                itemBuilder: (context, index) {
-                  final product = snapshot.data![index];
-                  return ListTile(
-                    title: Text(product.name),
-                    subtitle: Text('Current Qty: ${product.quantity}'),
-                    onTap: () => Navigator.pop(context, product),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-      ),
-    );
-    if (selectedProduct == null) return;
-
-    final quantityText = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Quantity for ${selectedProduct.name}'),
-        content: TextField(
-          keyboardType: TextInputType.number,
-          autofocus: true,
-          decoration: const InputDecoration(labelText: 'Quantity'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, '1'),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-    final quantity = int.tryParse(quantityText ?? '1');
-    if (quantity == null || quantity <= 0) return;
-
-    final costText = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cost per Unit'),
-        content: TextField(
-          keyboardType: TextInputType.number,
-          autofocus: true,
-          decoration: const InputDecoration(labelText: 'Cost (₹)'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, '0'),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-    final cost = double.tryParse(costText ?? '0');
-    if (cost != null && cost > 0) {
-      _addItem(selectedProduct.id, quantity, cost);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${selectedProduct.name} added')));
-    }
-  }
+class StockFormScreen extends StatelessWidget {
+  const StockFormScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Use ThemeData for consistent styling
+    final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Stock Purchase')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: _supplierNameController,
-                  decoration: const InputDecoration(labelText: 'Supplier Name'),
-                  validator: (value) => value!.isEmpty ? 'Required' : null,
-                ),
-                ListTile(
-                  title: const Text('Purchase Date'),
-                  subtitle: Text(_purchaseDate.toString().split(' ')[0]),
-                  trailing: const Icon(Icons.calendar_today),
-                  onTap: () async {
-                    final date = await showDatePicker(
-                      context: context,
-                      initialDate: _purchaseDate,
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime.now(),
-                    );
-                    if (date != null) setState(() => _purchaseDate = date);
-                  },
-                ),
-                TextFormField(
-                  controller: _notesController,
-                  decoration: const InputDecoration(labelText: 'Notes'),
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _selectProductQuantityCost,
-                  child: const Text('Add Product to Purchase'),
-                ),
-                if (_items.isEmpty)
-                  const Text('No items added yet')
-                else
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _items.length,
-                    itemBuilder: (context, index) {
-                      final item = _items[index];
-                      final productProvider = Provider.of<ProductProvider>(context);
-                      final product = productProvider.products.firstWhere((p) => p.id == item.productId, orElse: () => Product(id: '', name: 'Unknown', price: 0, costPrice: 0, quantity: 0, categories: [], imageUrl: '', description: ''));
-                      return ListTile(
-                        title: Text(product.name),
-                        subtitle: Text('Quantity: ${item.quantity} | Cost/Unit: ₹${item.cost.toStringAsFixed(2)}'),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.remove),
-                          onPressed: () {
-                            setState(() {
-                              _totalCost -= item.quantity * item.cost;
-                              _items.removeAt(index);
-                            });
-                          },
+      appBar: AppBar(
+        title: const Text('Add Stock Purchase'),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: theme.colorScheme.primaryContainer,
+      ),
+      body: Consumer<StockProvider>(
+        builder: (context, stockPro, child) {
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: stockPro.formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Supplier Name Field
+                    TextFormField(
+                      controller: stockPro.supplierNameController,
+                      decoration: InputDecoration(
+                        labelText: 'Supplier Name',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      );
-                    },
-                  ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text('Total Cost: ₹${_totalCost.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                ),
-                ElevatedButton(
-                  onPressed: _items.isEmpty
-                      ? null
-                      : () async {
-                    if (_formKey.currentState!.validate() && _items.isNotEmpty) {
-                      try {
-                        final purchase = StockPurchase(
-                          id: const Uuid().v4(),
-                          supplierName: _supplierNameController.text,
-                          purchaseDate: _purchaseDate,
-                          items: _items,
-                          totalCost: _totalCost,
-                          notes: _notesController.text,
+                        filled: true,
+                        fillColor: theme.colorScheme.surface,
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Supplier name is required';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Purchase Date Picker
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ListTile(
+                        title: Text(
+                          'Purchase Date',
+                          style: theme.textTheme.titleMedium,
+                        ),
+                        subtitle: Text(
+                          stockPro.purchaseDate.toString().split(' ')[0],
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        trailing: Icon(
+                          Icons.calendar_today,
+                          color: theme.colorScheme.primary,
+                        ),
+                        onTap: () async {
+                          final date = await showDatePicker(
+                            context: context,
+                            initialDate: stockPro.purchaseDate,
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime.now(),
+                            builder: (context, child) {
+                              return Theme(
+                                data: theme.copyWith(
+                                  datePickerTheme: DatePickerThemeData(
+                                    backgroundColor: theme.colorScheme.surface,
+                                    headerBackgroundColor: theme.colorScheme.primary,
+                                    headerForegroundColor: theme.colorScheme.onPrimary,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                                child: child!,
+                              );
+                            },
+                          );
+                          if (date != null) {
+                            stockPro.updateDate(date);
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Notes Field
+                    TextFormField(
+                      controller: stockPro.notesController,
+                      decoration: InputDecoration(
+                        labelText: 'Notes',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        filled: true,
+                        fillColor: theme.colorScheme.surface,
+                      ),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Add Product Button
+                    FilledButton(
+                      onPressed: () {
+                        stockPro.selectProductQuantityCost(context);
+                      },
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('Add Product to Purchase'),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Product List
+                    stockPro.items.isEmpty
+                        ? Center(
+                      child: Text(
+                        'No items added yet',
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    )
+                        : ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: stockPro.items.length,
+                      itemBuilder: (context, index) {
+                        final item = stockPro.items[index];
+                        final productProvider = Provider.of<ProductProvider>(context);
+                        final product = productProvider.products.firstWhere(
+                              (p) => p.id == item.productId,
+                          orElse: () => Product(
+                            id: '',
+                            name: 'Unknown',
+                            price: 0,
+                            costPrice: 0,
+                            quantity: 0,
+                            categories: [],
+                            imageUrl: '',
+                            description: '',
+                          ),
                         );
-                        await Provider.of<StockProvider>(context, listen: false).addStockPurchase(purchase);
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Stock purchase saved')));
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-                      }
-                    }
-                  },
-                  child: const Text('Save Purchase'),
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ListTile(
+                            title: Text(
+                              product.name,
+                              style: theme.textTheme.titleMedium,
+                            ),
+                            subtitle: Text(
+                              'Quantity: ${item.quantity} | Cost/Unit: ₹${item.cost.toStringAsFixed(2)}',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            trailing: IconButton(
+                              icon: Icon(
+                                Icons.remove_circle,
+                                color: theme.colorScheme.error,
+                              ),
+                              onPressed: () {
+                                stockPro.removeProduct(index, item);
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Total Cost
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Total Cost:',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              '₹${stockPro.totalCost.toStringAsFixed(2)}',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Save Purchase Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: stockPro.items.isEmpty
+                            ? null
+                            : () async {
+                          if (stockPro.formKey.currentState!.validate() &&
+                              stockPro.items.isNotEmpty) {
+                            try {
+                              final purchase = StockPurchase(
+                                id: const Uuid().v4(),
+                                supplierName: stockPro.supplierNameController.text,
+                                purchaseDate: stockPro.purchaseDate,
+                                items: stockPro.items,
+                                totalCost: stockPro.totalCost,
+                                notes: stockPro.notesController.text,
+                              );
+                              await Provider.of<StockProvider>(context, listen: false)
+                                  .addStockPurchase(purchase);
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text('Stock purchase saved'),
+                                  backgroundColor: theme.colorScheme.primary,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              );
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Error: $e'),
+                                  backgroundColor: theme.colorScheme.error,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          disabledBackgroundColor: theme.colorScheme.onSurface.withOpacity(0.12),
+                        ),
+                        child: const Text('Save Purchase'),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
