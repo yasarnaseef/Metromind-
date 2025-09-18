@@ -60,7 +60,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) =>  ProductFormScreen(product:product ,)),
+                    MaterialPageRoute(builder: (_) =>  ProductFormScreen(product:product,fromWhere: 'Add' ,)),
                   );
                 },
               );

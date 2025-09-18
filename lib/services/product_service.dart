@@ -21,13 +21,13 @@ class ProductService {
   }
 
   Future<void> addProduct(Product product, XFile? image) async {
-    print("entered tooooo");
+    String docId=DateTime.now().microsecondsSinceEpoch.toString();
     try {
-      String imageUrl = product.imageUrl;
+      String imageUrl = '';
       if (image != null) {
-        imageUrl = await uploadImage(image);
+        // imageUrl = await uploadImage(image);
       }
-      await _firestore.collection('products').doc(product.id).set({
+      await _firestore.collection('products').doc(docId).set({
         ...product.toMap(),
         'imageUrl': imageUrl,
       });
@@ -40,7 +40,7 @@ class ProductService {
     try {
       String imageUrl = product.imageUrl;
       if (image != null) {
-        imageUrl = await uploadImage(image);
+        // imageUrl = await uploadImage(image);
       }
       await _firestore.collection('products').doc(product.id).update({
         ...product.toMap(),

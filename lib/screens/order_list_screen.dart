@@ -44,14 +44,19 @@ class _OrderListScreenState extends State<OrderListScreen> {
           fontWeight: FontWeight.w600,
         ),),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const OrderFormScreen()),
+          Consumer<OrderProvider>(
+            builder: (context,order,child) {
+              return IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: () {
+                  order.clearControllers();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const OrderFormScreen()),
+                  );
+                },
               );
-            },
+            }
           ),
         ],
       ),

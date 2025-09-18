@@ -10,19 +10,13 @@ import '../providers/product_provider.dart';
 
 
 class OrderFormScreen extends StatefulWidget {
-  const OrderFormScreen({Key? key}) : super(key: key);
+  const OrderFormScreen({super.key});
 
   @override
   State<OrderFormScreen> createState() => _OrderFormScreenState();
 }
 
 class _OrderFormScreenState extends State<OrderFormScreen> {
-
-
-
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -200,11 +194,11 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                                   final product = productProvider.products.firstWhere(
                                         (p) => p.id == item.productId,
                                     orElse: () => Product(
-                                      id: '',
-                                      name: 'Unknown',
-                                      price: 0,
+                                      id: item.productId,
+                                      name: item.productName,
+                                      price: item.price,
                                       costPrice: 0,
-                                      quantity: 0,
+                                      quantity: item.quantity,
                                       categories: [],
                                       imageUrl: '',
                                       description: '',
@@ -213,11 +207,6 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                                   return Card(
                                     margin: const EdgeInsets.symmetric(vertical: 4),
                                     child: ListTile(
-                                      leading: product.imageUrl.isNotEmpty
-                                          ? CircleAvatar(
-                                        backgroundImage: NetworkImage(product.imageUrl),
-                                      )
-                                          : const Icon(Icons.image_not_supported),
                                       title: Text(
                                         product.name,
                                         style: const TextStyle(fontWeight: FontWeight.w600),
@@ -257,7 +246,7 @@ class _OrderFormScreenState extends State<OrderFormScreen> {
                                   paymentStatus: orderPro.paymentStatus,
                                   deliveryDate: orderPro.deliveryDate,
                                 );
-                                await Provider.of<OrderProvider>(context, listen: false).addOrder(order);
+                                await orderPro.addOrder(order);
                                 Navigator.pop(context);
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(

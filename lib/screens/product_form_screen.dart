@@ -10,7 +10,8 @@ import '../providers/product_provider.dart';
 
 class ProductFormScreen extends StatelessWidget {
   final Product? product;
-  const ProductFormScreen({super.key, this.product});
+  String fromWhere;
+   ProductFormScreen({super.key, this.product,required this.fromWhere});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +19,7 @@ class ProductFormScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          product == null ? 'Add Product' : 'Edit Product',
+          fromWhere =="Add"? 'Add Product' : 'Edit Product',
           style: theme.textTheme.titleLarge,
         ),
         centerTitle: true,
@@ -69,7 +70,7 @@ class ProductFormScreen extends StatelessWidget {
                       const SizedBox(height: 16),
                       _buildTextField(
                         controller: productPro.costPriceController,
-                        label: 'Cost Price (Private)',
+                        label: 'Cost Price ',
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
@@ -101,7 +102,7 @@ class ProductFormScreen extends StatelessWidget {
                       const SizedBox(height: 16),
                       _buildTextField(
                         controller: productPro.categoriesController,
-                        label: 'Categories (comma separated)',
+                        label: 'Categories ',
                         hint: 'e.g., Electronics, Gadgets',
                       ),
                       const SizedBox(height: 16),
@@ -190,6 +191,15 @@ class ProductFormScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
+            if(productPro.productImage.isNotEmpty)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(productPro.productImage,
+                  height: 100,
+                  width: 100,
+                  fit: BoxFit.cover,
+                ),
+              ),
             if (productPro.image != null)
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
@@ -228,7 +238,7 @@ class ProductFormScreen extends StatelessWidget {
             Expanded(
               child: ElevatedButton(
                 onPressed: productPro.isLoading ? null : (){
-                  productPro.saveProduct(context,product);
+                  productPro.saveProduct(context,product,fromWhere);
                 },
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),

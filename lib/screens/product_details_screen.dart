@@ -154,10 +154,11 @@ class ProductDetailScreen extends StatelessWidget {
               builder: (context,productPro,child) {
               return FilledButton(
                 onPressed: () {
+                  productPro.setProductDetails(product);
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => ProductFormScreen(product: product),
+                      builder: (_) => ProductFormScreen(product: product,fromWhere: 'Edit',),
                     ),
                   );
                 },

@@ -9,7 +9,8 @@ import '../providers/dashboard_provider.dart';
 import 'dashboard_screen.dart';
 import 'order_list_screen.dart';
 import 'product_list_screen.dart';
-import 'stock_list_screen.dart';
+import 'stock_form_screen.dart';
+
 
 
 class HomeScreen extends StatefulWidget {
@@ -20,13 +21,14 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+
   int _currentIndex = 0;
   ThemeMode _themeMode = ThemeMode.system;
   final List<Widget> _screens = [
-    const DashboardScreen(),
+     DashboardScreen(),
     const ProductListScreen(),
     const OrderListScreen(),
-    const StockListScreen(),
+    const StockPurchaseScreen(),
   ];
 
   @override
@@ -47,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
         appBar: AppBar(
           title:  Text('Product Management',style: GoogleFonts.poppins(
             color: Colors.black,
-            fontSize: 20,
+            fontSize: 19,
             fontWeight: FontWeight.w500,
           )),
           actions: [

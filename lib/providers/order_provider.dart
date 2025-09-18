@@ -14,14 +14,25 @@ class OrderProvider with ChangeNotifier {
   final formKey = GlobalKey<FormState>();
   final customerNameController = TextEditingController();
   final customerContactController = TextEditingController();
+  final productQuantity = TextEditingController();
   DateTime deliveryDate = DateTime.now();
   List<OrderItem> items = [];
   String status = 'Pending';
   String paymentStatus = 'Pending';
   bool isSaving = false;
+  clearControllers(){
+    customerNameController.clear();
+    customerContactController.clear();
+    productQuantity.clear();
+     status = 'Pending';
+     paymentStatus = 'Pending';
+     isSaving = false;
+     notifyListeners();
 
-  void addItem(String productId, int quantity) {
-    items.add(OrderItem(productId: productId, quantity: quantity));
+  }
+
+  void addItem(String productId, String productName,double productPrice) {
+    items.add(OrderItem(productId: productId, quantity: int.tryParse(productQuantity.text)??0, productName: productName, price: productPrice));
     notifyListeners();
   }
 
@@ -97,6 +108,7 @@ class OrderProvider with ChangeNotifier {
               ),
               const SizedBox(height: 16),
               TextField(
+                controller: productQuantity,
                 keyboardType: TextInputType.number,
                 autofocus: true,
                 decoration: InputDecoration(
@@ -131,7 +143,7 @@ class OrderProvider with ChangeNotifier {
     );
     final quantity = int.tryParse(quantityText ?? '1');
     if (quantity != null && quantity > 0) {
-      addItem(selectedProduct.id, quantity);
+      addItem(selectedProduct.id, selectedProduct.name,selectedProduct.price);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${selectedProduct.name} added to order'),

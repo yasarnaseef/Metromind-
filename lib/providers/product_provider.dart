@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +13,8 @@ import '../services/product_service.dart';
 
 class ProductProvider with ChangeNotifier {
   final ProductService _productService = ProductService();
-
+  final db = FirebaseFirestore.instance;
+  // final storage = FirebaseStorage.instance;
   final formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final descriptionController = TextEditingController();
@@ -17,6 +22,7 @@ class ProductProvider with ChangeNotifier {
   final costPriceController = TextEditingController();
   final quantityController = TextEditingController();
   final categoriesController = TextEditingController();
+  String productImage="";
   XFile? image;
   final ImagePicker picker = ImagePicker();
   bool isLoading = false;
@@ -59,7 +65,7 @@ class ProductProvider with ChangeNotifier {
         false;
   }
 
-  Future<void> saveProduct(BuildContext context,Product item) async {
+  Future<void> saveProduct(BuildContext context,Product item,String fromWhere) async {
     if (!formKey.currentState!.validate()) return;
 
     final confirmed = await confirmSave(context);
@@ -83,11 +89,11 @@ class ProductProvider with ChangeNotifier {
         description: descriptionController.text.trim(),
       );
 
-      final productProvider = Provider.of<ProductProvider>(context, listen: false);
-      if (item == null) {
-        await productProvider.addProduct(product, image);
+      if (fromWhere == 'Add') {
+        print("m jdcndhndvnudnv ");
+        await addProduct(product, image);
       } else {
-        await productProvider.updateProduct(product, image);
+        await updateProduct(product, image);
       }
 
       Navigator.pop(context);
@@ -102,6 +108,7 @@ class ProductProvider with ChangeNotifier {
       isLoading = false;
     }
   }
+
   List<Product> _products = [];
 
   List<Product> get products => _products;
@@ -120,6 +127,9 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
+
+
+
   setProductDetails(Product product){
     if(product==null)return;
     nameController.text =product!.name;
@@ -128,18 +138,9 @@ class ProductProvider with ChangeNotifier {
     costPriceController.text = product!.costPrice.toStringAsFixed(2);
     quantityController.text = product!.quantity.toString();
     categoriesController.text = product!.categories.join(', ');
+    productImage=product.imageUrl;
     notifyListeners();
   }
-  void clearProductDetails() {
-    nameController.clear();
-    descriptionController.clear();
-    priceController.clear();
-    costPriceController.clear();
-    quantityController.clear();
-    categoriesController.clear();
-    notifyListeners();
-  }
-
   Future<void> updateProduct(Product product, XFile? image) async {
     try {
       await _productService.updateProduct(product, image);
@@ -152,7 +153,6 @@ class ProductProvider with ChangeNotifier {
       rethrow;
     }
   }
-
   Future<void> deleteProduct(String id) async {
     try {
       await _productService.deleteProduct(id);
@@ -162,4 +162,18 @@ class ProductProvider with ChangeNotifier {
       rethrow;
     }
   }
+  void clearProductDetails() {
+    isLoading=false;
+    image = null;
+    productImage="";
+    nameController.clear();
+    descriptionController.clear();
+    priceController.clear();
+    costPriceController.clear();
+    quantityController.clear();
+    categoriesController.clear();
+    notifyListeners();
+  }
+
+
 }

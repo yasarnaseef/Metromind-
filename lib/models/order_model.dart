@@ -1,16 +1,26 @@
 class OrderItem {
   String productId;
+  String productName;
+  double price;
   int quantity;
 
-  OrderItem({required this.productId, required this.quantity});
+  OrderItem({required this.productId,
+    required this.productName,
+    required this.price,
+    required this.quantity,
+  });
 
   Map<String, dynamic> toMap() => {
     'productId': productId,
+    'productName': productName,
+    'price': price,
     'quantity': quantity,
   };
 
   factory OrderItem.fromMap(Map<String, dynamic> map) => OrderItem(
     productId: map['productId'] ?? '',
+    productName: map['productName'] ?? '',
+    price: map['price'] ?? 0.0,
     quantity: map['quantity'] ?? 0,
   );
 }

@@ -1,292 +1,432 @@
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
+
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import '../models/product_model.dart';
-import '../models/stock_model.dart';
-import '../providers/product_provider.dart';
 import '../providers/stock_provider.dart';
 
-
-class StockFormScreen extends StatelessWidget {
-  const StockFormScreen({super.key});
+class StockPurchaseScreen extends StatelessWidget {
+  const StockPurchaseScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Use ThemeData for consistent styling
-    final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add Stock Purchase'),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: theme.colorScheme.primaryContainer,
-      ),
+      backgroundColor: Colors.grey[50],
       body: Consumer<StockProvider>(
-        builder: (context, stockPro, child) {
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: stockPro.formKey,
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Supplier Name Field
-                    TextFormField(
-                      controller: stockPro.supplierNameController,
-                      decoration: InputDecoration(
-                        labelText: 'Supplier Name',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: theme.colorScheme.surface,
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Supplier name is required';
-                        }
-                        return null;
-                      },
+        builder: (context,stockPro,child) {
+          return Form(
+            key: stockPro.formKey,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Header Card
+                  Card(
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    const SizedBox(height: 16),
-
-                    // Purchase Date Picker
-                    Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: ListTile(
-                        title: Text(
-                          'Purchase Date',
-                          style: theme.textTheme.titleMedium,
-                        ),
-                        subtitle: Text(
-                          stockPro.purchaseDate.toString().split(' ')[0],
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.shopping_cart_outlined,
+                                color: Colors.blue[600],
+                                size: 24,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'New Stock Purchase',
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: Colors.grey[800],
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        trailing: Icon(
-                          Icons.calendar_today,
-                          color: theme.colorScheme.primary,
-                        ),
-                        onTap: () async {
-                          final date = await showDatePicker(
-                            context: context,
-                            initialDate: stockPro.purchaseDate,
-                            firstDate: DateTime(2000),
-                            lastDate: DateTime.now(),
-                            builder: (context, child) {
-                              return Theme(
-                                data: theme.copyWith(
-                                  datePickerTheme: DatePickerThemeData(
-                                    backgroundColor: theme.colorScheme.surface,
-                                    headerBackgroundColor: theme.colorScheme.primary,
-                                    headerForegroundColor: theme.colorScheme.onPrimary,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Add purchase details and product information',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Supplier Information Card
+                  Card(
+                    elevation: 1,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Supplier Information',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[800],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Supplier Name
+                          TextFormField(
+                            controller: stockPro.supplierController,
+                            decoration: InputDecoration(
+                              labelText: 'Supplier Name *',
+                              hintText: 'Enter supplier name',
+                              prefixIcon: const Icon(Icons.business),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[50],
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Supplier name is required';
+                              }
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // Purchase Date
+                          InkWell(
+                            onTap: (){
+                              stockPro.selectDate(context);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey[400]!),
+                                borderRadius: BorderRadius.circular(8),
+                                color: Colors.grey[50],
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.calendar_today, color: Colors.grey),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      stockPro.selectedDate == null
+                                          ? 'Select Purchase Date *'
+                                          : '${stockPro.selectedDate!.day}/${stockPro.selectedDate!.month}/${stockPro.selectedDate!.year}',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: stockPro.selectedDate == null
+                                            ? Colors.grey[600]
+                                            : Colors.black87,
+                                      ),
                                     ),
                                   ),
+                                  const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Products Card
+                  Card(
+                    elevation: 1,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Products & Quantities',
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey[800],
                                 ),
-                                child: child!,
-                              );
+                              ),
+                              ElevatedButton.icon(
+                                onPressed: stockPro.addProduct,
+                                icon: const Icon(Icons.add, size: 18),
+                                label: const Text('Add Product'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue[50],
+                                  foregroundColor: Colors.blue[700],
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          ...List.generate(stockPro.products.length, (index) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16.0),
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.grey[300]!),
+                                  borderRadius: BorderRadius.circular(8),
+                                  color: Colors.white,
+                                ),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'Product ${index + 1}',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        if (stockPro.products.length > 1)
+                                          IconButton(
+                                            onPressed: () =>stockPro.removeProduct(index),
+                                            icon: const Icon(
+                                              Icons.remove_circle_outline,
+                                              color: Colors.red,
+                                            ),
+                                            constraints: const BoxConstraints(),
+                                            padding: EdgeInsets.zero,
+                                          ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    TextFormField(
+                                      controller: stockPro.products[index].nameController,
+                                      decoration: InputDecoration(
+                                        labelText: 'Product Name *',
+                                        hintText: 'Enter product name',
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.grey[50],
+                                        contentPadding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 8,
+                                        ),
+                                      ),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Product name is required';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                    const SizedBox(height: 12),
+                                    TextFormField(
+                                      controller: stockPro.products[index].quantityController,
+                                      decoration: InputDecoration(
+                                        labelText: 'Quantity *',
+                                        hintText: 'Enter quantity',
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.grey[50],
+                                        contentPadding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 8,
+                                        ),
+                                      ),
+                                      keyboardType: TextInputType.number,
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly,
+                                      ],
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Quantity is required';
+                                        }
+                                        if (int.tryParse(value) == null || int.parse(value) <= 0) {
+                                          return 'Enter a valid quantity';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Cost and Notes Card
+                  Card(
+                    elevation: 1,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Additional Details',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[800],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Total Cost
+                          TextFormField(
+                            controller: stockPro.costController,
+                            decoration: InputDecoration(
+                              labelText: 'Total Cost *',
+                              hintText: 'Enter total cost',
+                              prefixIcon: const Icon(Icons.currency_rupee),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[50],
+                            ),
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                            ],
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Total cost is required';
+                              }
+                              if (double.tryParse(value) == null || double.parse(value) <= 0) {
+                                return 'Enter a valid cost';
+                              }
+                              return null;
                             },
-                          );
-                          if (date != null) {
-                            stockPro.updateDate(date);
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Notes Field
-                    TextFormField(
-                      controller: stockPro.notesController,
-                      decoration: InputDecoration(
-                        labelText: 'Notes',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: theme.colorScheme.surface,
-                      ),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Add Product Button
-                    FilledButton(
-                      onPressed: () {
-                        stockPro.selectProductQuantityCost(context);
-                      },
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text('Add Product to Purchase'),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Product List
-                    stockPro.items.isEmpty
-                        ? Center(
-                      child: Text(
-                        'No items added yet',
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    )
-                        : ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: stockPro.items.length,
-                      itemBuilder: (context, index) {
-                        final item = stockPro.items[index];
-                        final productProvider = Provider.of<ProductProvider>(context);
-                        final product = productProvider.products.firstWhere(
-                              (p) => p.id == item.productId,
-                          orElse: () => Product(
-                            id: '',
-                            name: 'Unknown',
-                            price: 0,
-                            costPrice: 0,
-                            quantity: 0,
-                            categories: [],
-                            imageUrl: '',
-                            description: '',
                           ),
-                        );
-                        return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+
+                          const SizedBox(height: 16),
+
+                          // Notes
+                          TextFormField(
+                            controller: stockPro.notesController,
+                            decoration: InputDecoration(
+                              labelText: 'Notes (Optional)',
+                              hintText: 'Add any additional notes...',
+                              prefixIcon: const Icon(Icons.note_add),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              filled: true,
+                              fillColor: Colors.grey[50],
+                            ),
+                            maxLines: 3,
+                            maxLength: 500,
                           ),
-                          child: ListTile(
-                            title: Text(
-                              product.name,
-                              style: theme.textTheme.titleMedium,
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Action Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: stockPro.resetForm,
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            subtitle: Text(
-                              'Quantity: ${item.quantity} | Cost/Unit: ₹${item.cost.toStringAsFixed(2)}',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            trailing: IconButton(
-                              icon: Icon(
-                                Icons.remove_circle,
-                                color: theme.colorScheme.error,
-                              ),
-                              onPressed: () {
-                                stockPro.removeProduct(index, item);
-                              },
+                            side: BorderSide(color: Colors.grey[400]!),
+                          ),
+                          child: const Text(
+                            'Reset',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Total Cost
-                    Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Total Cost:',
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              '₹${stockPro.totalCost.toStringAsFixed(2)}',
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: theme.colorScheme.primary,
-                              ),
-                            ),
-                          ],
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Save Purchase Button
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: stockPro.items.isEmpty
-                            ? null
-                            : () async {
-                          if (stockPro.formKey.currentState!.validate() &&
-                              stockPro.items.isNotEmpty) {
-                            try {
-                              final purchase = StockPurchase(
-                                id: const Uuid().v4(),
-                                supplierName: stockPro.supplierNameController.text,
-                                purchaseDate: stockPro.purchaseDate,
-                                items: stockPro.items,
-                                totalCost: stockPro.totalCost,
-                                notes: stockPro.notesController.text,
-                              );
-                              await Provider.of<StockProvider>(context, listen: false)
-                                  .addStockPurchase(purchase);
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: const Text('Stock purchase saved'),
-                                  backgroundColor: theme.colorScheme.primary,
-                                  behavior: SnackBarBehavior.floating,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                              );
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Error: $e'),
-                                  backgroundColor: theme.colorScheme.error,
-                                  behavior: SnackBarBehavior.floating,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                              );
-                            }
-                          }
-                        },
-                        style: FilledButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton(
+                          onPressed: (){
+                            stockPro.savePurchase(context);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[600],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 2,
                           ),
-                          disabledBackgroundColor: theme.colorScheme.onSurface.withOpacity(0.12),
+                          child: const Text(
+                            'Save Purchase',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
-                        child: const Text('Save Purchase'),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+                ],
               ),
             ),
           );
-        },
+        }
       ),
     );
+  }
+}
+
+class ProductItem {
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController quantityController = TextEditingController();
+
+  void dispose() {
+    nameController.dispose();
+    quantityController.dispose();
   }
 }
