@@ -24,7 +24,7 @@ class Product {
   /// Convert Product -> Map for Firestore
   Map<String, dynamic> toMap() {
     return {
-      'id': id, // keep product id inside doc as well (helps in queries)
+      'productId': id, // keep product id inside doc as well (helps in queries)
       'name': name,
       'price': price,
       'costPrice': costPrice,
@@ -39,7 +39,7 @@ class Product {
   /// Convert Firestore Map -> Product
   factory Product.fromMap(String id, Map<String, dynamic> map) {
     return Product(
-      id: id,
+      id: map['productId'] ?? '',
       name: map['name'] ?? '',
       price: (map['price'] ?? 0).toDouble(),
       costPrice: (map['costPrice'] ?? 0).toDouble(),

@@ -29,6 +29,7 @@ class ProductService {
       }
       await _firestore.collection('products').doc(docId).set({
         ...product.toMap(),
+        'productId': docId,
         'imageUrl': imageUrl,
       });
     } catch (e) {

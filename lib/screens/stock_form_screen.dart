@@ -67,7 +67,7 @@ class StockPurchaseScreen extends StatelessWidget {
 
                   // Supplier Information Card
                   Card(
-                    elevation: 1,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -151,7 +151,7 @@ class StockPurchaseScreen extends StatelessWidget {
 
                   // Products Card
                   Card(
-                    elevation: 1,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -170,19 +170,19 @@ class StockPurchaseScreen extends StatelessWidget {
                                   color: Colors.grey[800],
                                 ),
                               ),
-                              ElevatedButton.icon(
-                                onPressed: stockPro.addProduct,
-                                icon: const Icon(Icons.add, size: 18),
-                                label: const Text('Add Product'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue[50],
-                                  foregroundColor: Colors.blue[700],
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                              ),
+                              // ElevatedButton.icon(
+                              //   onPressed: stockPro.addProduct,
+                              //   icon: const Icon(Icons.add, size: 18),
+                              //   label: const Text('Add Product'),
+                              //   style: ElevatedButton.styleFrom(
+                              //     backgroundColor: Colors.blue[50],
+                              //     foregroundColor: Colors.blue[700],
+                              //     elevation: 0,
+                              //     shape: RoundedRectangleBorder(
+                              //       borderRadius: BorderRadius.circular(8),
+                              //     ),
+                              //   ),
+                              // ),
                             ],
                           ),
 
@@ -289,7 +289,7 @@ class StockPurchaseScreen extends StatelessWidget {
 
                   // Cost and Notes Card
                   Card(
-                    elevation: 1,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

@@ -63,22 +63,42 @@ class StockProvider with ChangeNotifier {
     }
   }
 
-  void savePurchase(BuildContext context) {
-    if (formKey.currentState!.validate() && selectedDate != null) {
-      // Here you would typically save to database or state management
+  Future<void> savePurchase(BuildContext context) async {
+    if (!formKey.currentState!.validate() || selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Stock purchase saved successfully!'),
-          backgroundColor: Colors.green,
-        ),
+        const SnackBar(content: Text("Please fill all required fields")),
       );
+      return;
+    }
+
+    try {
+      // Convert product list to map
+      List<Map<String, dynamic>> productList = products.map((p) {
+        return {
+          "name": p.nameController.text,
+          "quantity": int.tryParse(p.quantityController.text) ?? 0,
+        };
+      }).toList();
+
+      // Save to Firestore
+      await FirebaseFirestore.instance.collection("purchases").add({
+        "supplier": supplierController.text,
+        "date": selectedDate,
+        "products": productList,
+        "totalCost": double.tryParse(costController.text) ?? 0,
+        "notes": notesController.text,
+        "createdAt": FieldValue.serverTimestamp(),
+      });
+
+      // Clear form after saving
       resetForm();
-    } else {
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill all required fields'),
-          backgroundColor: Colors.red,
-        ),
+        const SnackBar(content: Text("Purchase saved successfully")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
       );
     }
   }

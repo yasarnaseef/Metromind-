@@ -10,101 +10,127 @@ class DashboardProvider with ChangeNotifier {
   double todaysSales = 0.0;
   double monthlySales = 0.0;
   int monthlyOrders = 0;
-  List<Map<String, dynamic>> topSellingProducts = [];
   bool _isLoading = false;
 
   bool get isLoading => _isLoading;
 
+  double todaySalesAmount=0;
+
+  fetchTodaySales() async {
+    todaySalesAmount=0;
+    DateTime day = DateTime.now();
+    DateTime startDate = DateTime(day.year, day.month, day.day);
+    DateTime endDate = startDate.add(const Duration(hours: 23, seconds: 59, minutes: 59));
+    final query=await db.collection("orders")
+        .where('createdAt', isGreaterThanOrEqualTo: startDate)
+        .where('createdAt', isLessThanOrEqualTo: endDate).aggregate(sum('totalAmount')).get();
+    todaySalesAmount=query.getSum('totalAmount') ?? 0;
+    notifyListeners();
+  }
+
+double monthlySalesAmount=0;
+  int monthlyOrdersCount =0;
+
+  final List<Map<String, dynamic>> lowStockProductsList = [];
+  List<Map<String, dynamic>> topSellingProducts = [];
+
   Future<void> loadDashboardData() async {
     if (_isLoading) return;
+
+    topSellingProducts.clear();
+    lowStockProductsList.clear();
     _isLoading = true;
     notifyListeners();
 
     try {
       final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      final tomorrow = DateTime(now.year, now.month, now.day + 1);
-      final monthStart = DateTime(now.year, now.month, 1);
 
-      // Low Stock
-      final productsSnapshot = await db
-          .collection('products')
-          .where('quantity', isLessThan: 5)
-          .get();
-      lowStockProducts = productsSnapshot.docs
-          .map((doc) => Product.fromMap(doc.id, doc.data()))
-          .toList();
+      // First and last day of current month
+      final startDate = DateTime(now.year, now.month, 1);
+      final endDate = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
 
-      // Today's Sales
-      final todayOrdersSnapshot = await db
-          .collection('orders')
-          .where('deliveryDate', isGreaterThanOrEqualTo: today.toIso8601String())
-          .where('deliveryDate', isLessThan: tomorrow.toIso8601String())
-          .where('status', isEqualTo: 'Delivered')
-          .get();
-      final todayOrders = todayOrdersSnapshot.docs
-          .map((doc) => OrderModel.fromMap(doc.id,doc.data()))
-          .toList();
-      todaysSales = await _calculateOrderTotal(todayOrders);
+      monthlySalesAmount = 0;
+      monthlyOrdersCount = 0;
 
-      // Monthly Overview
-      final monthlyOrdersSnapshot = await db
-          .collection('orders')
-          .where('deliveryDate',
-          isGreaterThanOrEqualTo: monthStart.toIso8601String())
-          .get();
-      final monthlyOrdersList = monthlyOrdersSnapshot.docs
-          .map((doc) => OrderModel.fromMap(doc.id,doc.data()))
-          .toList();
-      monthlySales = await _calculateOrderTotal(monthlyOrdersList);
-      monthlyOrders = monthlyOrdersList.length; // Fixed: Use length for count
+      // Run queries in parallel
+      fetchTodaySales(); // not awaited on purpose
+      final futures = await Future.wait([
+        db.collection("orders")
+            .where('createdAt', isGreaterThanOrEqualTo: startDate)
+            .where('createdAt', isLessThanOrEqualTo: endDate)
+            .get(),
+        db.collection('products')
+            .where('quantity', isLessThan: 5)
+            .get(),
+      ]);
 
-      // Top Selling Products
-      final productSales = <String, int>{};
-      for (var order in monthlyOrdersList) {
-      for (var item in order.items) {
-          productSales[item.productId] =
-              ((productSales[item.productId] ?? 0) + item.quantity).toInt();
+      // Orders query
+      final ordersQuery = futures[0] as QuerySnapshot;
+      if (ordersQuery.docs.isNotEmpty) {
+        monthlyOrdersCount = ordersQuery.docs.length;
 
-      }
-      }
-      topSellingProducts = [];
-      for (var entry in productSales.entries) {
-        final productDoc = await db
-            .collection('products')
-            .doc(entry.key)
-            .get();
-        if (productDoc.exists) {
-          final product = Product.fromMap(entry.key, productDoc.data()!);
-          topSellingProducts.add({'product': product, 'quantity': entry.value});
+        // Sum sales
+        monthlySalesAmount = ordersQuery.docs.fold<double>(0.0, (sum, doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          final amount = (data['totalAmount'] ?? 0).toDouble();
+          return sum + amount;
+        });
+
+        // 🔥 Compute top-selling products
+        final Map<String, int> productSales = {};
+
+        for (final doc in ordersQuery.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          final List<dynamic> items = data['items'] ?? [];
+
+          for (final item in items) {
+            final productId = item['productId'];
+            final quantity = (item['quantity'] ?? 0) as int;
+
+            if (productId != null) {
+              productSales[productId] = (productSales[productId] ?? 0) + quantity;
+            }
+          }
+        }
+
+        // Sort by quantity sold (descending)
+        final sortedProducts = productSales.entries.toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
+
+        // 🔎 Fetch product details for top 5
+        for (final entry in sortedProducts.take(5)) {
+          final productDoc = await db.collection('products').doc(entry.key).get();
+          final productData = productDoc.data() as Map<String, dynamic>?;
+
+          topSellingProducts.add({
+            'productId': entry.key,
+            'name': productData?['name'] ?? 'Unknown',
+            'quantity': entry.value,
+          });
         }
       }
-      topSellingProducts.sort((a, b) => b['quantity'].compareTo(a['quantity']));
-      topSellingProducts = topSellingProducts.take(5).toList();
+
+      // Low stock products
+      final productsSnapshot = futures[1] as QuerySnapshot;
+      final firestoreProducts = productsSnapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        return {
+          'id': doc.id,
+          ...data,
+        };
+      }).toList();
+
+      lowStockProductsList.addAll(firestoreProducts);
+
+      notifyListeners();
     } catch (e) {
       debugPrint('Dashboard load error: $e');
-      // Optionally, notify UI of error
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<double> _calculateOrderTotal(List<OrderModel> orders) async {
-    double total = 0.0;
-    for (var order in orders) {
-    for (var item in order.items) {
 
-        final productDoc = await db
-            .collection('products')
-            .doc(item.productId)
-            .get();
-        if (productDoc.exists) {
-          final product = Product.fromMap(productDoc.id, productDoc.data()!);
-          total += product.price * item.quantity;
-      }
-    }
-    }
-    return total;
-  }
+
 }
