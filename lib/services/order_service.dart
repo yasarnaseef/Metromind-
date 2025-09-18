@@ -11,7 +11,7 @@ class OrderService {
       double totalAmount = order.items.fold(0, (total, item) => total + (item.price * item.quantity));
       if(order.items.isNotEmpty){
         for(var item in order.items){
-          await _firestore.collection('products').doc(order.id).set({'quantity':FieldValue.increment((-item.quantity))},SetOptions(merge: true));
+          await _firestore.collection('products').doc(item.productId).set({'quantity':FieldValue.increment((-item.quantity))},SetOptions(merge: true));
         }
       }
       await _firestore.collection('orders').doc(order.id).set({...order.toMap(),'totalAmount':totalAmount,"createdAt":FieldValue.serverTimestamp()});

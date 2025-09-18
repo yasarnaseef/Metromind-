@@ -265,7 +265,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
               child: Text(
               productName,
               style: TextStyle(
-              fontSize: 10,
+              fontSize: 9,
               color: Theme.of(context).colorScheme.onSurface,
               ),
               textAlign: TextAlign.center,
